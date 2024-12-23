@@ -12,14 +12,12 @@ export const API_CONSTANTS = {
   },
   HEADERS: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Origin': isProduction() 
-      ? 'https://photo-poetry-app.netlify.app'
-      : 'http://localhost:5173'
+    'Accept': 'application/json'
   },
   TIMEOUT: 30000,
   RETRY: {
     MAX_ATTEMPTS: 3,
-    DELAY: 1000
+    DELAY: 1000,
+    BACKOFF_FACTOR: 1.5
   }
 } as const;

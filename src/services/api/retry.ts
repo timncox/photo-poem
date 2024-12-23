@@ -20,9 +20,15 @@ export async function fetchWithRetry<T>(
 
     return await response.json();
   } catch (error) {
-    if (attempt >= API_CONSTANTS.RETRY.MAX_ATTEMPTS) throw error;
+    if (attempt >= API_CONSTANTS.RETRY.MAX_ATTEMPTS) {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new ApiError(503, 'Server is currently unavailable. Please try again later.');
+      }
+      throw error;
+    }
     
-    await sleep(API_CONSTANTS.RETRY.DELAY * attempt);
+    const delay = API_CONSTANTS.RETRY.DELAY * Math.pow(API_CONSTANTS.RETRY.BACKOFF_FACTOR, attempt - 1);
+    await sleep(delay);
     return fetchWithRetry<T>(url, options, attempt + 1);
   }
 }
