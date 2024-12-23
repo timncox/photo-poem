@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       manifest: {
         name: 'Photo Poetry',
         short_name: 'PhotoPoetry',
@@ -22,18 +22,14 @@ export default defineConfig({
             purpose: 'any'
           }
         ]
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true
       }
     })
   ],
-  server: {
-    port: 5173,
-    host: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
-  },
   build: {
     sourcemap: true,
     modulePreload: {
