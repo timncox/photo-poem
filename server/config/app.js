@@ -2,11 +2,15 @@ import express from 'express';
 import { setupMiddleware } from '../middleware/index.js';
 import { setupRoutes } from '../routes/index.js';
 import { errorHandler } from '../middleware/errorHandler.js';
+import { requestLogger } from '../middleware/logging.js';
 
 export function createApp() {
   const app = express();
   
-  // Ensure middleware is set up before routes
+  // Add request logging first
+  app.use(requestLogger);
+  
+  // Setup other middleware and routes
   setupMiddleware(app);
   setupRoutes(app);
   

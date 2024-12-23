@@ -1,9 +1,15 @@
 export function errorHandler(err, req, res, next) {
-  console.error('Server Error:', {
+  const timestamp = new Date().toISOString();
+  
+  // Detailed error logging
+  console.error(`[${timestamp}] Server Error:`, {
     message: err.message,
     stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
+    headers: req.headers,
+    origin: req.get('origin'),
+    ip: req.ip
   });
   
   // Don't expose internal error details in production
@@ -14,6 +20,7 @@ export function errorHandler(err, req, res, next) {
   
   res.status(statusCode).json({ 
     error: message,
+    timestamp,
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
   });
 }
