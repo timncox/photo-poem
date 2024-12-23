@@ -1,5 +1,6 @@
 export const SERVER_CONFIG = Object.freeze({
-  DEFAULT_PORT: 3000,
+  DEFAULT_PORT: process.env.PORT || 3000,
+  DEFAULT_HOST: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
   ALLOWED_ORIGINS: Object.freeze([
     'http://localhost:5173',
     'http://127.0.0.1:5173', 
