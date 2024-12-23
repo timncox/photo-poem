@@ -19,11 +19,13 @@ export const corsMiddleware = cors({
     if (isAllowed) {
       callback(null, true);
     } else {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  maxAge: SERVER_CONFIG.CORS_MAX_AGE
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: SERVER_CONFIG.CORS_MAX_AGE,
+  optionsSuccessStatus: 200
 });
