@@ -1,11 +1,12 @@
 export function blockThirdPartyScripts() {
   try {
-    // Only block if property doesn't exist
-    if (!Object.getOwnPropertyDescriptor(window, 'ethereum')) {
+    // Check if property exists and is configurable
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'ethereum');
+    if (!descriptor || descriptor.configurable) {
       Object.defineProperty(window, 'ethereum', {
         value: undefined,
-        configurable: false,
-        writable: false
+        writable: false,
+        configurable: false
       });
     }
   } catch (error) {

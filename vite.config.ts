@@ -42,17 +42,10 @@ export default defineConfig({
             }
           }
         ]
-      },
-      devOptions: {
-        enabled: true,
-        type: 'module'
       }
     })
   ],
   build: {
-    sourcemap: true,
-    modulePreload: {
-      polyfill: true
-    }
+    sourcemap: true
   }
 });
