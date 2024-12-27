@@ -14,64 +14,69 @@ export function Camera({ onPhotoCapture }: CameraProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
 
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
+    if (isLoading) return; // Prevent multiple simultaneous attempts
+    
     try {
       setIsLoading(true);
       setError('');
       
-      console.log('Starting camera initialization...');
       const hasPermission = await getCameraPermissions();
       if (!hasPermission) {
         throw new Error('Camera permission denied');
       }
 
       const mediaStream = await getMediaStream(facingMode);
-      setStream(mediaStream);
       
-      if (videoRef.current) {
-        console.log('Setting video stream...');
-        videoRef.current.srcObject = mediaStream;
-        
-        // Wait for video to be ready
-        await new Promise<void>((resolve) => {
-          if (videoRef.current) {
-            videoRef.current.onloadedmetadata = () => {
-              console.log('Video metadata loaded');
-              resolve();
-            };
-          }
-        });
-
-        // Ensure video plays
-        try {
-          await videoRef.current.play();
-          console.log('Video playback started');
-        } catch (playError) {
-          console.error('Video playback failed:', playError);
-          throw new Error('Failed to start video playback');
-        }
+      if (!videoRef.current) {
+        throw new Error('Video element not found');
       }
+
+      videoRef.current.srcObject = mediaStream;
+      
+      // Wait for video to be ready
+      await new Promise<void>((resolve, reject) => {
+        if (!videoRef.current) return reject(new Error('Video element not found'));
+        
+        const timeoutId = setTimeout(() => {
+          reject(new Error('Video loading timed out'));
+        }, 10000); // 10 second timeout
+
+        videoRef.current.onloadedmetadata = () => {
+          clearTimeout(timeoutId);
+          resolve();
+        };
+      });
+
+      await videoRef.current.play();
+      setStream(mediaStream);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start camera';
       console.error('Camera initialization error:', err);
       setError(message);
+      // Cleanup on error
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      setStream(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [facingMode, isLoading, stream]);
 
   const stopCamera = useCallback(() => {
     if (stream) {
-      console.log('Stopping camera stream...');
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
   }, [stream]);
 
   const switchCamera = async () => {
     stopCamera();
     setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
-    await startCamera();
   };
 
   const retryCamera = async () => {
