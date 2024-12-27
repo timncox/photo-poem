@@ -14,6 +14,10 @@ const features = [
 
 export async function analyzeImage(imageData) {
   try {
+    if (!config.google.apiKey) {
+      throw new Error('Google Cloud API key is not configured');
+    }
+
     // Remove data URL prefix if present
     const image = imageData.replace(/^data:image\/\w+;base64,/, '');
     
@@ -57,6 +61,6 @@ export async function analyzeImage(imageData) {
     };
   } catch (error) {
     console.error('Vision API Error:', error);
-    throw new Error('Failed to analyze image with Vision API');
+    throw new Error(`Failed to analyze image: ${error.message}`);
   }
 }

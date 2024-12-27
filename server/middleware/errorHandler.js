@@ -12,6 +12,14 @@ export function errorHandler(err, req, res, next) {
     ip: req.ip
   });
   
+  // Check for specific error types
+  if (err.message.includes('API key is not configured')) {
+    return res.status(503).json({
+      error: 'Service temporarily unavailable. Please try again later.',
+      timestamp
+    });
+  }
+  
   // Don't expose internal error details in production
   const statusCode = err.statusCode || 500;
   const message = statusCode === 500 && process.env.NODE_ENV === 'production'

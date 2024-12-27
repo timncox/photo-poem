@@ -2,6 +2,10 @@ import OpenAI from 'openai';
 import { config } from '../config/environment.js';
 
 export async function generatePoem(description) {
+  if (!config.openai.apiKey) {
+    throw new Error('OpenAI API key is not configured');
+  }
+
   const openai = new OpenAI({
     apiKey: config.openai.apiKey
   });
@@ -19,8 +23,13 @@ export async function generatePoem(description) {
       max_tokens: 200
     });
 
+    if (!response.choices?.[0]?.message?.content) {
+      throw new Error('No poem generated');
+    }
+
     return response.choices[0].message.content;
   } catch (error) {
-    throw new Error('Failed to generate poem: ' + error.message);
+    console.error('OpenAI API Error:', error);
+    throw new Error(`Failed to generate poem: ${error.message}`);
   }
 }
