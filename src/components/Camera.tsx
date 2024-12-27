@@ -82,9 +82,12 @@ export function Camera({ onPhotoCapture }: CameraProps) {
   const capturePhoto = () => {
     if (!videoRef.current) return;
     
+    const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    
+    // Use the actual video dimensions
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -95,7 +98,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
       ctx.translate(-canvas.width, 0);
     }
     
-    ctx.drawImage(videoRef.current, 0, 0);
+    ctx.drawImage(video, 0, 0);
     const photoData = canvas.toDataURL('image/jpeg', 0.8);
     onPhotoCapture(photoData);
     stopCamera();
@@ -145,12 +148,12 @@ export function Camera({ onPhotoCapture }: CameraProps) {
           />
         </>
       ) : (
-        <div className="relative">
+        <div className="relative aspect-[4/3] w-full">
           <video
             ref={videoRef}
             autoPlay
             playsInline
-            className="w-full rounded-lg"
+            className="absolute inset-0 w-full h-full object-cover rounded-lg"
             style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
           />
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
