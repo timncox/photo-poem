@@ -15,7 +15,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
 
   const startCamera = useCallback(async () => {
-    if (isLoading) return; // Prevent multiple simultaneous attempts
+    if (isLoading || !videoRef.current) return;
     
     try {
       setIsLoading(true);
@@ -28,10 +28,6 @@ export function Camera({ onPhotoCapture }: CameraProps) {
 
       const mediaStream = await getMediaStream(facingMode);
       
-      if (!videoRef.current) {
-        throw new Error('Video element not found');
-      }
-
       videoRef.current.srcObject = mediaStream;
       
       // Wait for video to be ready
@@ -39,13 +35,15 @@ export function Camera({ onPhotoCapture }: CameraProps) {
         if (!videoRef.current) return reject(new Error('Video element not found'));
         
         const timeoutId = setTimeout(() => {
-          reject(new Error('Video loading timed out'));
-        }, 10000); // 10 second timeout
+          reject(new Error('Camera initialization timed out'));
+        }, 10000);
 
-        videoRef.current.onloadedmetadata = () => {
+        const handleCanPlay = () => {
           clearTimeout(timeoutId);
           resolve();
         };
+
+        videoRef.current.addEventListener('canplay', handleCanPlay, { once: true });
       });
 
       await videoRef.current.play();
@@ -54,15 +52,11 @@ export function Camera({ onPhotoCapture }: CameraProps) {
       const message = err instanceof Error ? err.message : 'Failed to start camera';
       console.error('Camera initialization error:', err);
       setError(message);
-      // Cleanup on error
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      setStream(null);
+      stopCamera();
     } finally {
       setIsLoading(false);
     }
-  }, [facingMode, isLoading, stream]);
+  }, [facingMode, isLoading]);
 
   const stopCamera = useCallback(() => {
     if (stream) {
@@ -74,7 +68,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     }
   }, [stream]);
 
-  const switchCamera = async () => {
+  const switchCamera = () => {
     stopCamera();
     setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
   };
@@ -90,7 +84,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
     
-    // Use the actual video dimensions
+    // Maintain aspect ratio
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
@@ -108,6 +102,13 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     onPhotoCapture(photoData);
     stopCamera();
   };
+
+  // Start camera when facing mode changes
+  useEffect(() => {
+    if (!stream) {
+      startCamera();
+    }
+  }, [facingMode, startCamera]);
 
   // Clean up on unmount
   useEffect(() => {
