@@ -1,42 +1,49 @@
-// Check and request camera permissions
+// Enhanced camera utilities with better device handling
 export async function getCameraPermissions(): Promise<boolean> {
-    try {
-      const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      if (result.state === 'denied') {
-        throw new Error('Please enable camera access in your browser settings');
-      }
-      return true;
-    } catch (error) {
-      // Fallback for browsers that don't support permission query
-      return true;
+  try {
+    const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+    if (result.state === 'denied') {
+      throw new Error('Camera access denied. Please enable it in your browser settings.');
     }
+    return true;
+  } catch (error) {
+    // Some browsers don't support permission query
+    return true;
   }
-  
-  // Get media stream with proper error handling
-  export async function getMediaStream(): Promise<MediaStream> {
+}
+
+export async function getMediaStream(preferredFacingMode: 'environment' | 'user' = 'environment'): Promise<MediaStream> {
+  const constraints = {
+    video: {
+      facingMode: preferredFacingMode,
+      width: { ideal: 1920 },
+      height: { ideal: 1080 }
+    }
+  };
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    return stream;
+  } catch (error) {
+    // If preferred camera fails, try the other one
+    const fallbackMode = preferredFacingMode === 'environment' ? 'user' : 'environment';
     try {
-      // Try rear camera first on mobile
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const fallbackStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          facingMode: fallbackMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
       });
-      return stream;
-    } catch (error) {
-      // If rear camera fails, try front camera
+      return fallbackStream;
+    } catch (secondError) {
+      // If both fail, try basic video constraints
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        });
-        return stream;
-      } catch (secondError) {
-        throw new Error('Unable to access any camera. Please check your camera permissions and try again.');
+        const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        return basicStream;
+      } catch (finalError) {
+        throw new Error('Unable to access camera. Please check your permissions and try again.');
       }
     }
   }
+}

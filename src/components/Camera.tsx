@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Camera as CameraIcon, RefreshCw } from 'lucide-react';
 import { FileUpload } from './FileUpload';
 import { getCameraPermissions, getMediaStream } from '../utils/camera';
@@ -12,29 +12,30 @@ export function Camera({ onPhotoCapture }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
 
   const startCamera = async () => {
     try {
       setIsLoading(true);
       setError('');
 
-      // First check/request permissions
       const hasPermission = await getCameraPermissions();
       if (!hasPermission) {
         throw new Error('Camera permission denied');
       }
 
-      const mediaStream = await getMediaStream();
+      const mediaStream = await getMediaStream(facingMode);
       setStream(mediaStream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        // Wait for video to be ready
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
           if (videoRef.current) {
-            videoRef.current.onloadedmetadata = resolve;
+            videoRef.current.onloadedmetadata = () => resolve();
           }
         });
+        // Ensure video plays after metadata is loaded
+        await videoRef.current.play();
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start camera';
@@ -50,6 +51,12 @@ export function Camera({ onPhotoCapture }: CameraProps) {
       setStream(null);
     }
   }, [stream]);
+
+  const switchCamera = async () => {
+    stopCamera();
+    setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+    await startCamera();
+  };
 
   const retryCamera = async () => {
     stopCamera();
@@ -67,7 +74,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     if (!ctx) return;
     
     // Flip horizontally if using front camera
-    if (stream?.getVideoTracks()[0].getSettings().facingMode === 'user') {
+    if (facingMode === 'user') {
       ctx.scale(-1, 1);
       ctx.translate(-canvas.width, 0);
     }
@@ -77,6 +84,13 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     onPhotoCapture(photoData);
     stopCamera();
   };
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, [stopCamera]);
 
   return (
     <div className="relative w-full max-w-md mx-auto space-y-4">
@@ -121,8 +135,15 @@ export function Camera({ onPhotoCapture }: CameraProps) {
             autoPlay
             playsInline
             className="w-full rounded-lg"
+            style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
           />
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+            <button
+              onClick={switchCamera}
+              className="bg-white text-blue-500 p-3 rounded-full shadow-lg hover:bg-blue-50 transition-colors"
+            >
+              <RefreshCw size={20} />
+            </button>
             <button
               onClick={capturePhoto}
               className="bg-white text-blue-500 p-4 rounded-full shadow-lg hover:bg-blue-50 transition-colors"
