@@ -1,11 +1,10 @@
 import { createApp } from './config/app.js';
-import { config } from './config/environment.js';
 import { SERVER_CONFIG } from './config/constants.js';
 
 const app = createApp();
 
-const server = app.listen(config.port, SERVER_CONFIG.DEFAULT_HOST, () => {
-  console.log(`Server running on ${SERVER_CONFIG.DEFAULT_HOST}:${config.port}`);
+const server = app.listen(SERVER_CONFIG.DEFAULT_PORT, SERVER_CONFIG.DEFAULT_HOST, () => {
+  console.log(`Server running on ${SERVER_CONFIG.DEFAULT_HOST}:${SERVER_CONFIG.DEFAULT_PORT}`);
 });
 
 // Graceful shutdown

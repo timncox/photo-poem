@@ -1,16 +1,14 @@
-import { config } from './environment.js';
+import { SERVER_CONFIG } from './constants.js';
 
 export const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = config.cors.origin;
-    
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
       return callback(null, true);
     }
 
     // Check if origin matches any allowed patterns
-    const isAllowed = allowedOrigins.some(allowed => {
+    const isAllowed = SERVER_CONFIG.ALLOWED_ORIGINS.some(allowed => {
       if (typeof allowed === 'string') {
         return allowed === origin;
       }
@@ -28,6 +26,6 @@ export const corsOptions = {
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400,
+  maxAge: SERVER_CONFIG.CORS_MAX_AGE,
   optionsSuccessStatus: 200
 };
