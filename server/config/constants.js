@@ -1,3 +1,4 @@
+// Base configuration constants
 export const SERVER_CONFIG = {
   DEFAULT_PORT: process.env.PORT || 10000,
   DEFAULT_HOST: '0.0.0.0',
