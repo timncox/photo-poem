@@ -18,7 +18,8 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     try {
       setIsLoading(true);
       setError('');
-
+      
+      console.log('Starting camera initialization...');
       const hasPermission = await getCameraPermissions();
       if (!hasPermission) {
         throw new Error('Camera permission denied');
@@ -28,17 +29,31 @@ export function Camera({ onPhotoCapture }: CameraProps) {
       setStream(mediaStream);
       
       if (videoRef.current) {
+        console.log('Setting video stream...');
         videoRef.current.srcObject = mediaStream;
+        
+        // Wait for video to be ready
         await new Promise<void>((resolve) => {
           if (videoRef.current) {
-            videoRef.current.onloadedmetadata = () => resolve();
+            videoRef.current.onloadedmetadata = () => {
+              console.log('Video metadata loaded');
+              resolve();
+            };
           }
         });
-        // Ensure video plays after metadata is loaded
-        await videoRef.current.play();
+
+        // Ensure video plays
+        try {
+          await videoRef.current.play();
+          console.log('Video playback started');
+        } catch (playError) {
+          console.error('Video playback failed:', playError);
+          throw new Error('Failed to start video playback');
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start camera';
+      console.error('Camera initialization error:', err);
       setError(message);
     } finally {
       setIsLoading(false);
@@ -47,6 +62,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
 
   const stopCamera = useCallback(() => {
     if (stream) {
+      console.log('Stopping camera stream...');
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }

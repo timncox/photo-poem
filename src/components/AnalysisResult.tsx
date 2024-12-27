@@ -1,11 +1,13 @@
 import React from 'react';
 import type { AnalysisResult } from '../services/api/types';
+import { ExportButton } from './ExportButton';
 
 interface AnalysisResultProps {
   result: AnalysisResult;
+  photoUrl: string;
 }
 
-export function AnalysisDisplay({ result }: AnalysisResultProps) {
+export function AnalysisDisplay({ result, photoUrl }: AnalysisResultProps) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
       <div>
@@ -18,6 +20,11 @@ export function AnalysisDisplay({ result }: AnalysisResultProps) {
           {result.poem}
         </pre>
       </div>
+      <ExportButton 
+        imageData={photoUrl}
+        poem={result.poem}
+        className="mt-4"
+      />
     </div>
   );
 }

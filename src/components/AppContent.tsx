@@ -35,7 +35,11 @@ export function AppContent() {
           <div className="space-y-4">
             <PhotoDisplay photoUrl={photo} onReset={resetPhoto} />
             {error && <ErrorMessage message={error} />}
-            {loading ? <LoadingSpinner /> : result && <AnalysisDisplay result={result} />}
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              result && <AnalysisDisplay result={result} photoUrl={photo} />
+            )}
           </div>
         )}
       </div>
