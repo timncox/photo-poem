@@ -1,11 +1,5 @@
-import { isProduction } from '../../utils/environment';
-
-const API_BASE_URL = isProduction()
-  ? 'https://photo-poetry-api.onrender.com'
-  : 'http://localhost:3000';
-
 export const API_CONSTANTS = {
-  BASE_URL: API_BASE_URL,
+  BASE_URL: 'https://photo-poetry-api.onrender.com',
   ENDPOINTS: {
     ANALYZE: '/api/analyze',
     HEALTH: '/health'
