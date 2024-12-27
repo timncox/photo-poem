@@ -1,20 +1,15 @@
-import dotenv from 'dotenv';
-import { SERVER_CONFIG } from './constants.js';
-
-dotenv.config();
-
-const getEnvVar = (key, defaultValue = '') => process.env[key] || defaultValue;
-
-export const config = {
-  port: parseInt(getEnvVar('PORT', '10000')), // Default to Render's expected port
-  env: getEnvVar('NODE_ENV', 'development'),
-  cors: {
-    origin: getEnvVar('CORS_ORIGINS', 'https://photo-poetry-app.netlify.app').split(',')
-  },
-  google: {
-    apiKey: getEnvVar('GOOGLE_CLOUD_API_KEY')
-  },
-  openai: {
-    apiKey: getEnvVar('OPENAI_API_KEY')
-  }
+export const SERVER_CONFIG = {
+  DEFAULT_PORT: process.env.PORT || 10000,
+  DEFAULT_HOST: '0.0.0.0',
+  ALLOWED_ORIGINS: [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://photo-poetry-app.netlify.app',
+    /^https:\/\/[a-z0-9-]+\.preview\.stackblitz\.io$/,
+    /^https:\/\/[a-z0-9-]+\.stackblitz\.io$/,
+    /^https:\/\/[a-z0-9-]+\.netlify\.app$/
+  ],
+  MAX_REQUEST_SIZE: '50mb',
+  CORS_MAX_AGE: 86400,
+  API_PREFIX: '/api'
 };

@@ -1,17 +1,31 @@
 import { config } from './environment.js';
+import { SERVER_CONFIG } from './constants.js';
 
 export const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = config.cors.origin;
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Check against allowed origins including regex patterns
+    const isAllowed = SERVER_CONFIG.ALLOWED_ORIGINS.some(allowed => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return allowed === origin;
+    });
+
+    if (isAllowed) {
       callback(null, true);
     } else {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
+  credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 86400
+  maxAge: SERVER_CONFIG.CORS_MAX_AGE,
+  optionsSuccessStatus: 200
 };
