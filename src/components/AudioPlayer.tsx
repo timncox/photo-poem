@@ -42,21 +42,22 @@ export function AudioPlayer({ text }: AudioPlayerProps) {
   };
 
   const handleDownload = async () => {
-    if (!audioUrl) {
-      try {
-        const audioBlob = await generateAudio(text);
-        const url = URL.createObjectURL(audioBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'poem.mp3';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error('Failed to download audio:', error);
-        alert('Failed to download audio. Please try again.');
-      }
+    try {
+      setIsLoading(true);
+      const audioBlob = await generateAudio(text);
+      const url = URL.createObjectURL(audioBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'poem.mp3';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download audio:', error);
+      alert('Failed to download audio. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,15 +92,14 @@ export function AudioPlayer({ text }: AudioPlayerProps) {
         )}
       </button>
 
-      {audioUrl && (
-        <button
-          onClick={handleDownload}
-          className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-        >
-          <Download size={20} />
-          Download MP3
-        </button>
-      )}
+      <button
+        onClick={handleDownload}
+        disabled={isLoading}
+        className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-blue-300"
+      >
+        <Download size={20} />
+        Download MP3
+      </button>
     </div>
   );
 }
