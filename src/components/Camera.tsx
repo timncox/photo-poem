@@ -27,27 +27,16 @@ export function Camera({ onPhotoCapture }: CameraProps) {
       }
 
       const mediaStream = await getMediaStream(facingMode);
-      
       videoRef.current.srcObject = mediaStream;
-      
-      // Wait for video to be ready
-      await new Promise<void>((resolve, reject) => {
-        if (!videoRef.current) return reject(new Error('Video element not found'));
-        
-        const timeoutId = setTimeout(() => {
-          reject(new Error('Camera initialization timed out'));
-        }, 10000);
+      setStream(mediaStream);
 
-        const handleCanPlay = () => {
-          clearTimeout(timeoutId);
-          resolve();
-        };
-
-        videoRef.current.addEventListener('canplay', handleCanPlay, { once: true });
+      // Wait for video metadata to load to get correct dimensions
+      await new Promise<void>((resolve) => {
+        if (!videoRef.current) return;
+        videoRef.current.onloadedmetadata = () => resolve();
       });
 
       await videoRef.current.play();
-      setStream(mediaStream);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start camera';
       console.error('Camera initialization error:', err);
@@ -84,7 +73,7 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
     
-    // Maintain aspect ratio
+    // Use actual video dimensions
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
@@ -103,19 +92,14 @@ export function Camera({ onPhotoCapture }: CameraProps) {
     stopCamera();
   };
 
-  // Start camera when facing mode changes
   useEffect(() => {
     if (!stream) {
       startCamera();
     }
-  }, [facingMode, startCamera]);
-
-  // Clean up on unmount
-  useEffect(() => {
     return () => {
       stopCamera();
     };
-  }, [stopCamera]);
+  }, [facingMode, startCamera, stopCamera, stream]);
 
   return (
     <div className="relative w-full max-w-md mx-auto space-y-4">
@@ -154,13 +138,16 @@ export function Camera({ onPhotoCapture }: CameraProps) {
           />
         </>
       ) : (
-        <div className="relative aspect-[4/3] w-full">
+        <div className="relative w-full">
           <video
             ref={videoRef}
             autoPlay
             playsInline
-            className="absolute inset-0 w-full h-full object-cover rounded-lg"
-            style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
+            className="w-full object-contain rounded-lg"
+            style={{ 
+              transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+              aspectRatio: '16/9'
+            }}
           />
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
             <button

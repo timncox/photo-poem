@@ -12,7 +12,7 @@ export function PhotoDisplay({ photoUrl, onReset }: PhotoDisplayProps) {
       <img 
         src={photoUrl} 
         alt="Captured" 
-        className="w-full rounded-lg shadow-lg"
+        className="w-full h-auto object-contain rounded-lg shadow-lg"
       />
       <button
         onClick={onReset}
