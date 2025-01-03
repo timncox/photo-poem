@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { fixImageOrientation } from './image';
 
 interface PdfExportOptions {
   title?: string;
@@ -16,6 +17,9 @@ export async function createPhotoPoetryPdf(
     author = 'Photo Poetry App',
     imageQuality = 0.8
   } = options;
+
+  // Fix image orientation before creating PDF
+  const fixedImageData = await fixImageOrientation(imageData);
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -40,7 +44,7 @@ export async function createPhotoPoetryPdf(
   await new Promise((resolve, reject) => {
     img.onload = resolve;
     img.onerror = reject;
-    img.src = imageData;
+    img.src = fixedImageData;
   });
 
   // A4 dimensions in mm
@@ -48,8 +52,8 @@ export async function createPhotoPoetryPdf(
   const pageMargin = 20;
 
   // The maximum width and height in which we want to fit the image
-  const maxWidth = pageWidth - 2 * pageMargin; // e.g., 170 mm
-  const maxHeight = 120; // e.g., 120 mm
+  const maxWidth = pageWidth - 2 * pageMargin;
+  const maxHeight = 120;
 
   // Calculate aspect ratio based on intrinsic pixel dimensions
   const aspectRatio = img.width / img.height;
@@ -66,11 +70,11 @@ export async function createPhotoPoetryPdf(
 
   // Center the image horizontally on the page
   const imgX = (pageWidth - finalWidth) / 2;
-  const imgY = 30; // some top margin
+  const imgY = 30;
 
-  // Add image
+  // Add image with correct orientation
   doc.addImage(
-    imageData,
+    fixedImageData,
     'JPEG',
     imgX,
     imgY,
@@ -92,10 +96,8 @@ export async function createPhotoPoetryPdf(
     doc.setFont('helvetica', 'normal');
     poemLines = doc.splitTextToSize(poem, maxWidth);
     
-    // Approx. line height in mm = fontSize * 0.3528
     const totalPoemHeight = poemLines.length * (fontSize * 0.3528);
     
-    // If the poem fits OR if we’ve hit our minimum font size, stop shrinking
     if (totalPoemHeight <= maxPoemHeight || fontSize <= 8) {
       break;
     }
