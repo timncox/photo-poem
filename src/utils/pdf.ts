@@ -43,32 +43,29 @@ export async function createPhotoPoetryPdf(
     img.src = imageData;
   });
 
-  // Calculate available space on page
-  const pageWidth = 210; // A4 width in mm
+  // Calculate dimensions for A4 page in mm (210 x 297)
+  const pageWidth = 210;
   const pageMargin = 20;
-  const availableWidth = pageWidth - (2 * pageMargin);
-  const availableHeight = 100; // Maximum height for image section
+  const maxWidth = pageWidth - (2 * pageMargin); // 170mm
+  const maxHeight = 120; // Maximum height allowed for image
 
-  // Calculate scaling factor to fit image within available space
-  const imgRatio = img.width / img.height;
-  const pageRatio = availableWidth / availableHeight;
+  // Convert image dimensions from pixels to mm (assuming 72 DPI)
+  const pxToMm = 25.4 / 72; // 1 inch = 25.4mm, 72px = 1 inch
+  const imgWidthMm = img.width * pxToMm;
+  const imgHeightMm = img.height * pxToMm;
 
-  let finalWidth: number;
-  let finalHeight: number;
+  // Calculate scaling ratio while preserving aspect ratio
+  const widthRatio = maxWidth / imgWidthMm;
+  const heightRatio = maxHeight / imgHeightMm;
+  const scale = Math.min(widthRatio, heightRatio);
 
-  if (imgRatio > pageRatio) {
-    // Image is wider than available space ratio
-    finalWidth = availableWidth;
-    finalHeight = finalWidth / imgRatio;
-  } else {
-    // Image is taller than available space ratio
-    finalHeight = availableHeight;
-    finalWidth = finalHeight * imgRatio;
-  }
+  // Final dimensions in mm
+  const finalWidth = imgWidthMm * scale;
+  const finalHeight = imgHeightMm * scale;
 
   // Center image horizontally
   const imgX = (pageWidth - finalWidth) / 2;
-  
+
   // Add image
   doc.addImage(
     imageData,
@@ -91,7 +88,7 @@ export async function createPhotoPoetryPdf(
   do {
     doc.setFontSize(fontSize);
     doc.setFont('helvetica', 'normal');
-    poemLines = doc.splitTextToSize(poem, availableWidth);
+    poemLines = doc.splitTextToSize(poem, maxWidth);
     
     const totalPoemHeight = poemLines.length * (fontSize * 0.3528);
     
