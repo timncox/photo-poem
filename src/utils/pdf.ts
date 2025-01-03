@@ -37,9 +37,8 @@ export async function createPhotoPoetryPdf(
 
   // Calculate image dimensions while maintaining aspect ratio
   const maxImgWidth = 170;
-  const maxImgHeight = 100; // Reduced height to leave more space for poem
+  const maxImgHeight = 100;
   
-  // Create temporary image to get dimensions
   const img = new Image();
   await new Promise((resolve) => {
     img.onload = resolve;
@@ -69,19 +68,18 @@ export async function createPhotoPoetryPdf(
   );
 
   // Add poem with dynamic font sizing
-  const poemY = 30 + imgHeight + 15; // Start 15mm below image
-  const maxPoemHeight = 250 - poemY; // Maximum space for poem
+  const poemY = 30 + imgHeight + 15;
+  const maxPoemHeight = 250 - poemY;
   
-  // Try different font sizes until poem fits
   let fontSize = 12;
   let poemLines;
   
   do {
     doc.setFontSize(fontSize);
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('helvetica', 'normal'); // Changed from 'italic' to 'normal'
     poemLines = doc.splitTextToSize(poem, 170);
     
-    const totalPoemHeight = poemLines.length * (fontSize * 0.3528); // Convert pt to mm
+    const totalPoemHeight = poemLines.length * (fontSize * 0.3528);
     
     if (totalPoemHeight <= maxPoemHeight || fontSize <= 8) {
       break;
@@ -90,8 +88,8 @@ export async function createPhotoPoetryPdf(
     fontSize--;
   } while (fontSize > 8);
 
-  // Center poem horizontally
-  doc.text(poemLines, 105, poemY, { align: 'center' });
+  // Left align poem with margin
+  doc.text(poemLines, 20, poemY); // Changed from centered (105) to left margin (20)
 
   // Add footer
   doc.setFontSize(10);

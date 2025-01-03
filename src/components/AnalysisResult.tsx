@@ -16,7 +16,7 @@ export function AnalysisDisplay({ result, photoUrl }: AnalysisResultProps) {
       </div>
       <div>
         <h2 className="text-lg font-semibold mb-2">Generated Poem</h2>
-        <pre className="whitespace-pre-wrap font-serif text-gray-800">
+        <pre className="whitespace-pre-wrap font-serif text-gray-800 text-left">
           {result.poem}
         </pre>
       </div>
