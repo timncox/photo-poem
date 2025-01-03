@@ -1,6 +1,7 @@
 import React from 'react';
 import type { AnalysisResult } from '../services/api/types';
 import { ExportButton } from './ExportButton';
+import { AudioPlayer } from './AudioPlayer';
 
 interface AnalysisResultProps {
   result: AnalysisResult;
@@ -20,11 +21,13 @@ export function AnalysisDisplay({ result, photoUrl }: AnalysisResultProps) {
           {result.poem}
         </pre>
       </div>
-      <ExportButton 
-        imageData={photoUrl}
-        poem={result.poem}
-        className="mt-4"
-      />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <ExportButton 
+          imageData={photoUrl}
+          poem={result.poem}
+        />
+        <AudioPlayer text={result.poem} />
+      </div>
     </div>
   );
 }

@@ -2,7 +2,8 @@ export const API_CONSTANTS = {
   BASE_URL: 'https://photo-poetry-api.onrender.com',
   ENDPOINTS: {
     ANALYZE: '/api/analyze',
-    HEALTH: '/health'
+    HEALTH: '/health',
+    TTS: '/api/tts'
   },
   HEADERS: {
     'Content-Type': 'application/json',
