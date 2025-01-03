@@ -6,6 +6,7 @@ import { PhotoDisplay } from './PhotoDisplay';
 import { AnalysisDisplay } from './AnalysisResult';
 import { ErrorMessage } from './ErrorMessage';
 import { LoadingSpinner } from './LoadingSpinner';
+import { ThemeToggle } from './ThemeToggle';
 
 export function AppContent() {
   const { serverReady, error: serverError } = useServerHealth();
@@ -19,9 +20,10 @@ export function AppContent() {
   } = usePhotoAnalysis(serverReady);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 transition-colors">
+      <ThemeToggle />
       <div className="max-w-md mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100">
           Photo Poetry
         </h1>
 

@@ -33,7 +33,7 @@ export function FileUpload({ onFileSelect, onError }: FileUploadProps) {
       />
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="w-full bg-gray-100 text-gray-700 p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
+        className="w-full bg-blue-500 text-white p-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors"
       >
         <Upload size={24} />
         Upload Photo
