@@ -35,40 +35,47 @@ export async function createPhotoPoetryPdf(
   doc.setFontSize(24);
   doc.text(title, 105, 20, { align: 'center' });
 
-  // Calculate image dimensions while maintaining aspect ratio
-  const maxImgWidth = 170;
-  const maxImgHeight = 100;
-  
+  // Load image and get dimensions
   const img = new Image();
-  await new Promise((resolve) => {
+  await new Promise((resolve, reject) => {
     img.onload = resolve;
+    img.onerror = reject;
     img.src = imageData;
   });
-  
+
+  // Calculate available space
+  const pageWidth = 210;  // A4 width in mm
+  const pageMargin = 20;
+  const maxWidth = pageWidth - (2 * pageMargin);
+  const maxHeight = 120;  // Maximum height for image
+
+  // Calculate dimensions preserving aspect ratio
   const imgRatio = img.width / img.height;
-  let imgWidth = maxImgWidth;
-  let imgHeight = imgWidth / imgRatio;
-  
-  if (imgHeight > maxImgHeight) {
-    imgHeight = maxImgHeight;
-    imgWidth = imgHeight * imgRatio;
+  let finalWidth = maxWidth;
+  let finalHeight = maxWidth / imgRatio;
+
+  if (finalHeight > maxHeight) {
+    finalHeight = maxHeight;
+    finalWidth = maxHeight * imgRatio;
   }
 
   // Center image horizontally
-  const imgX = (210 - imgWidth) / 2;
+  const imgX = (pageWidth - finalWidth) / 2;
+  
+  // Add image
   doc.addImage(
     imageData,
     'JPEG',
     imgX,
     30,
-    imgWidth,
-    imgHeight,
+    finalWidth,
+    finalHeight,
     undefined,
     'MEDIUM'
   );
 
   // Add poem with dynamic font sizing
-  const poemY = 30 + imgHeight + 15;
+  const poemY = 30 + finalHeight + 15;
   const maxPoemHeight = 250 - poemY;
   
   let fontSize = 12;
@@ -76,8 +83,8 @@ export async function createPhotoPoetryPdf(
   
   do {
     doc.setFontSize(fontSize);
-    doc.setFont('helvetica', 'normal'); // Changed from 'italic' to 'normal'
-    poemLines = doc.splitTextToSize(poem, 170);
+    doc.setFont('helvetica', 'normal');
+    poemLines = doc.splitTextToSize(poem, maxWidth);
     
     const totalPoemHeight = poemLines.length * (fontSize * 0.3528);
     
@@ -89,7 +96,7 @@ export async function createPhotoPoetryPdf(
   } while (fontSize > 8);
 
   // Left align poem with margin
-  doc.text(poemLines, 20, poemY); // Changed from centered (105) to left margin (20)
+  doc.text(poemLines, pageMargin, poemY);
 
   // Add footer
   doc.setFontSize(10);
