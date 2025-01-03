@@ -43,35 +43,37 @@ export async function createPhotoPoetryPdf(
     img.src = imageData;
   });
 
-  // Calculate dimensions for A4 page in mm (210 x 297)
+  // A4 dimensions in mm
   const pageWidth = 210;
   const pageMargin = 20;
-  const maxWidth = pageWidth - (2 * pageMargin); // 170mm
-  const maxHeight = 120; // Maximum height allowed for image
 
-  // Convert image dimensions from pixels to mm (assuming 72 DPI)
-  const pxToMm = 25.4 / 72; // 1 inch = 25.4mm, 72px = 1 inch
-  const imgWidthMm = img.width * pxToMm;
-  const imgHeightMm = img.height * pxToMm;
+  // The maximum width and height in which we want to fit the image
+  const maxWidth = pageWidth - 2 * pageMargin; // e.g., 170 mm
+  const maxHeight = 120; // e.g., 120 mm
 
-  // Calculate scaling ratio while preserving aspect ratio
-  const widthRatio = maxWidth / imgWidthMm;
-  const heightRatio = maxHeight / imgHeightMm;
-  const scale = Math.min(widthRatio, heightRatio);
+  // Calculate aspect ratio based on intrinsic pixel dimensions
+  const aspectRatio = img.width / img.height;
 
-  // Final dimensions in mm
-  const finalWidth = imgWidthMm * scale;
-  const finalHeight = imgHeightMm * scale;
+  // Start with fitting to maxWidth
+  let finalWidth = maxWidth;
+  let finalHeight = finalWidth / aspectRatio;
 
-  // Center image horizontally
+  // If that height is still too large, constrain by maxHeight
+  if (finalHeight > maxHeight) {
+    finalHeight = maxHeight;
+    finalWidth = finalHeight * aspectRatio;
+  }
+
+  // Center the image horizontally on the page
   const imgX = (pageWidth - finalWidth) / 2;
+  const imgY = 30; // some top margin
 
   // Add image
   doc.addImage(
     imageData,
     'JPEG',
     imgX,
-    30, // Fixed Y position
+    imgY,
     finalWidth,
     finalHeight,
     undefined,
@@ -79,7 +81,7 @@ export async function createPhotoPoetryPdf(
   );
 
   // Add poem with dynamic font sizing
-  const poemY = 30 + finalHeight + 15;
+  const poemY = imgY + finalHeight + 15;
   const maxPoemHeight = 250 - poemY;
   
   let fontSize = 12;
@@ -90,12 +92,13 @@ export async function createPhotoPoetryPdf(
     doc.setFont('helvetica', 'normal');
     poemLines = doc.splitTextToSize(poem, maxWidth);
     
+    // Approx. line height in mm = fontSize * 0.3528
     const totalPoemHeight = poemLines.length * (fontSize * 0.3528);
     
+    // If the poem fits OR if we’ve hit our minimum font size, stop shrinking
     if (totalPoemHeight <= maxPoemHeight || fontSize <= 8) {
       break;
     }
-    
     fontSize--;
   } while (fontSize > 8);
 
