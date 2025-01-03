@@ -43,20 +43,27 @@ export async function createPhotoPoetryPdf(
     img.src = imageData;
   });
 
-  // Calculate available space
-  const pageWidth = 210;  // A4 width in mm
+  // Calculate available space on page
+  const pageWidth = 210; // A4 width in mm
   const pageMargin = 20;
-  const maxWidth = pageWidth - (2 * pageMargin);
-  const maxHeight = 120;  // Maximum height for image
+  const availableWidth = pageWidth - (2 * pageMargin);
+  const availableHeight = 100; // Maximum height for image section
 
-  // Calculate dimensions preserving aspect ratio
+  // Calculate scaling factor to fit image within available space
   const imgRatio = img.width / img.height;
-  let finalWidth = maxWidth;
-  let finalHeight = maxWidth / imgRatio;
+  const pageRatio = availableWidth / availableHeight;
 
-  if (finalHeight > maxHeight) {
-    finalHeight = maxHeight;
-    finalWidth = maxHeight * imgRatio;
+  let finalWidth: number;
+  let finalHeight: number;
+
+  if (imgRatio > pageRatio) {
+    // Image is wider than available space ratio
+    finalWidth = availableWidth;
+    finalHeight = finalWidth / imgRatio;
+  } else {
+    // Image is taller than available space ratio
+    finalHeight = availableHeight;
+    finalWidth = finalHeight * imgRatio;
   }
 
   // Center image horizontally
@@ -67,7 +74,7 @@ export async function createPhotoPoetryPdf(
     imageData,
     'JPEG',
     imgX,
-    30,
+    30, // Fixed Y position
     finalWidth,
     finalHeight,
     undefined,
@@ -84,7 +91,7 @@ export async function createPhotoPoetryPdf(
   do {
     doc.setFontSize(fontSize);
     doc.setFont('helvetica', 'normal');
-    poemLines = doc.splitTextToSize(poem, maxWidth);
+    poemLines = doc.splitTextToSize(poem, availableWidth);
     
     const totalPoemHeight = poemLines.length * (fontSize * 0.3528);
     
